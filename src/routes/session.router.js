@@ -1,5 +1,6 @@
 import { Router } from "express";
 import UserModel from "../dao/models/user.model.js";
+import { createHash } from "../utils.js";
 
 const router = Router()
 
@@ -11,7 +12,11 @@ router.get('/register', (req, res) => {
 // API para crear usuarios en la DB
 router.post('/register', async(req, res) => {
     const userNew = req.body
-    console.log(userNew);
+    // userNew = {
+    //     ...userNew,
+    //     password: createHash(req.body.password)
+    // }
+    userNew.password = createHash(userNew.password)
 
     const user = new UserModel(userNew)
     await user.save()
