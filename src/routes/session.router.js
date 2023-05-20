@@ -17,7 +17,7 @@ router.post('/register', passport.authenticate('register', {
     res.redirect('/session/login')
 })
 
-router.get('/session/failRegister', (req, res) => {
+router.get('/failRegister', (req, res) => {
     res.send({ error: 'Failed!'})
 })
 
@@ -27,23 +27,24 @@ router.get('/login', (req, res) => {
 })
 
 // API para login
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body
-
-    const user = await UserModel.findOne({email}).lean().exec()
-    if(!user) {
-        return res.status(401).render('errors/base', {
-            error: 'User doesnot exists'
-        })
+router.post('/login', passport.authenticate('login', {
+    failureRedirect: '/session/failLogin'
+}), async (req, res) => {
+    if (!req.user) {
+        return res.status(400).send({ status: 'error', error: 'Invalid credentials'})
     }
 
-    if (!isValidPassword(user, password)) {
-        return res.status(403).send({ status: 'error', error: 'Incorrect pass'})
+    req.session.user = {
+        first_name: req.user.first_name,
+        last_name: req.user.last_name,
+        email: req.user.email,
+        age: req.user.age
     }
-
-    delete user.password
-    req.session.user = user
     res.redirect('/products')
+})
+
+router.get('/failLogin', (req, res) => {
+    res.send({ error: 'Fail Login'})
 })
 
 // Cerrar Session
